@@ -5,10 +5,19 @@ import { checkWinnerFrom, checkEndGame } from './logic/board';
 import { Square } from './components/Square';
 import { WinnerModal } from './components/WinnerModal';
 import { TURNS } from './constans.js';
+import { saveGameToStorage } from './logic/storage';
 
 function App() {
-  const [board, setBoard] = useState(Array(9).fill(null));
-  const [turn, setTurn] = useState(TURNS.X);
+  const [board, setBoard] = useState(() => {
+    const boardFromStorage = window.localStorage.getItem('board');
+    return boardFromStorage
+      ? JSON.parse(boardFromStorage)
+      : Array(9).fill(null);
+  });
+  const [turn, setTurn] = useState(() => {
+    const turnFromStorage = window.localStorage.getItem('turn');
+    return turnFromStorage ?? TURNS.X;
+  });
   const [winner, setWinner] = useState(null);
 
   const resetGame = () => {
@@ -30,6 +39,12 @@ function App() {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn);
 
+    // Guardar partida
+    saveGameToStorage({
+      board: newBoard,
+      turn: newTurn,
+    });
+
     //Revisar si hay ganador
     const newWinner = checkWinnerFrom(newBoard);
     if (newWinner) {
@@ -39,8 +54,6 @@ function App() {
     } else if (checkEndGame(newBoard)) {
       setWinner(false);
     }
-
-    // TODO: Check if game is over
   };
 
   return (
